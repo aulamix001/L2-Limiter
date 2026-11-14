@@ -8,16 +8,30 @@ permissions:
   contents: read
 jobs:
   windows:
-    runs-on: windows-latest
+    runs-on: windows-2022
     timeout-minutes: 30
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Configure Visual Studio x64
-        run: cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+        shell: pwsh
+        run: |
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64 2>&1 | Tee-Object configure.log
+          $result = $LASTEXITCODE
+          if ($result -ne 0) {
+            Get-Content configure.log | Select-Object -Last 40 | ForEach-Object { Write-Output "::error::$_" }
+            exit $result
+          }
       - name: Compile VST3, Standalone and tests
-        run: cmake --build build --config Release --parallel 2
+        shell: pwsh
+        run: |
+          cmake --build build --config Release --parallel 2 2>&1 | Tee-Object compile.log
+          $result = $LASTEXITCODE
+          if ($result -ne 0) {
+            Get-Content compile.log | Select-String -Pattern 'error|fatal|LNK[0-9]+' | Select-Object -Last 30 | ForEach-Object { Write-Output "::error::$_" }
+            exit $result
+          }
       - name: Test DSP and JUCE processor
         run: ctest --test-dir build -C Release --output-on-failure
       - name: Package Windows VST3
