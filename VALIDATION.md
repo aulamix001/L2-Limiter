@@ -22,10 +22,11 @@
 | NaN/Inf de entrada: saída e medidores finitos | Passou |
 | AddressSanitizer + UndefinedBehaviorSanitizer no núcleo DSP | Passou, sem diagnósticos |
 | Renderização do painel JUCE, textura e controles | Inspecionada |
+| pluginval 1.0.4, nível 5, VST3 Linux carregado por host externo | Passou; testes de janela omitidos por execução sem desktop |
 
 Comandos: `ctest --test-dir build --output-on-failure`; para os sanitizadores, `g++ -std=c++20 -O1 -g -Wall -Wextra -Werror -pedantic -fsanitize=address,undefined -fno-omit-frame-pointer -ISource Tests/DspTests.cpp -o dsp-sanitized && ./dsp-sanitized`. Os resultados não certificam todos os hosts ou dispositivos.
 
-O workflow também compila com Visual Studio 2022 em Windows x64, executa as duas suítes de testes e verifica os arquivos do pacote. A publicação do ZIP ocorre somente após o sucesso dessas etapas; o job associado a cada release é a evidência para o binário Windows correspondente.
+O workflow também compila com Visual Studio 2022 em Windows x64, executa as duas suítes de testes e verifica os arquivos do pacote. A publicação do ZIP ocorre somente após o sucesso dessas etapas; o job associado a cada release é a evidência para o binário Windows correspondente. O pipeline também carrega o VST3 Windows no pluginval 1.0.4, nível 5, com os testes de interface habilitados. O log `validation-windows.log` acompanha o ZIP quando essa etapa passa. No Linux, o pluginval encontrou exatamente um plugin e executou os testes de processamento/automação em 44,1/48/96 kHz e blocos de 64/128/256/512/1024 amostras. O validador VST3 separado da Steinberg não foi executado; auval não se aplica a este alvo Linux VST3.
 
 ## Falhas corrigidas nesta revisão
 
