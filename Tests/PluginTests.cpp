@@ -126,7 +126,19 @@ int main(int argc, char **argv)
     }
     if (argc > 1)
     {
-        p.setCurrentProgram(2);
+        p.setCurrentProgram(argc > 2 && juce::String(argv[2]) == "master" ? 25 : 0);
+        if (argc > 2 && juce::String(argv[2]) == "limits")
+        {
+            set("threshold", -30);
+            set("ceiling", -30);
+            set("release", .01f);
+            set("arc", 0);
+        }
+        else if (argc <= 2)
+        {
+            set("threshold", 0);
+            set("ceiling", 0);
+        }
         p.prepareToPlay(48000, 512);
         b.setSize(1, 512);
         for (int block = 0; block < 30; ++block)
@@ -155,6 +167,6 @@ int main(int argc, char **argv)
         juce::PNGImageFormat png;
         check(png.writeImageToStream(image, stream), "snapshot render");
     }
-    std::cout << "PASS: APVTS recall, all 25 factory presets and audio ceilings, stereo audio, latency, "
+    std::cout << "PASS: APVTS recall, all factory presets and audio ceilings, stereo audio, latency, "
                  "metering and mono processing\n";
 }

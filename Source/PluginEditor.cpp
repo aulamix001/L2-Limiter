@@ -70,7 +70,11 @@ ScalerL2LookAndFeel::ScalerL2LookAndFeel()
 juce::Slider::SliderLayout ScalerL2LookAndFeel::getSliderLayout(juce::Slider &s)
 {
     juce::Slider::SliderLayout l;
-    l.sliderBounds = s.getLocalBounds();
+    // JUCE uses these bounds for both thumb positioning and mouse-to-value mapping.
+    // Reserve room for the complete cap/readout at both endpoints.
+    const auto *fader = dynamic_cast<const HardwareFader *>(&s);
+    const int margin = fader && fader->isRelease ? 17 : 12;
+    l.sliderBounds = s.getLocalBounds().reduced(0, margin);
     return l;
 }
 void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int, float pos, float, float,
@@ -81,9 +85,9 @@ void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int
     if (s.isRelease)
     {
         g.setColour(col(0xff03040b));
-        g.fillRect(cx - 2, 7.f, 4.f, h - 14);
+        g.fillRect(cx - 2, 16.f, 4.f, h - 32);
         g.setColour(col(0xffb5bed0));
-        g.fillRect(cx - .5f, 8.f, 1.f, h - 16);
+        g.fillRect(cx - .5f, 17.f, 1.f, h - 34);
         juce::Rectangle<float> r(cx - 10.5f, pos - 12, 21, 25);
         juce::DropShadow(juce::Colours::black.withAlpha(.9f), 5, {3, 3})
             .drawForRectangle(g, r.toNearestInt());
@@ -108,7 +112,7 @@ void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int
     {
         for (int i = 0; i <= 10; ++i)
         {
-            float y = 8 + (h - 16) * i / 10.f;
+            float y = 12 + (h - 24) * i / 10.f;
             g.setColour(col(0xff737d98));
             g.drawLine(1, y, 8, y, .6f);
             g.drawLine(w - 8, y, w - 1, y, .6f);
@@ -321,7 +325,7 @@ void L2Editor::resized()
     help.setBounds(457, 8, 18, 18);
     threshold.setBounds(39, 76, 51, 155);
     ceiling.setBounds(173, 76, 50, 155);
-    release.setBounds(269, 99, 30, 129);
+    release.setBounds(269, 90, 30, 145);
     releaseValue.setBounds(274, 77, 45, 15);
     link.setBounds(121, 146, 22, 17);
     arc.setBounds(279, 237, 38, 19);
@@ -365,7 +369,7 @@ void L2Editor::paint(juce::Graphics &original)
     g.setColour(col(0xff3b425b));
     g.drawLine(6, 51, 522, 51, .6f);
     well(g, {10, 8, 58, 18});
-    text(g, "AULAMIX", {12, 8, 54, 18}, 9, col(0xffe8ecf0), .04f);
+    text(g, "SKY", {12, 8, 54, 18}, 11, col(0xffe8ecf0), .04f);
     text(g, "L2 ULTRAMAXIMIZER", {251, 29, 209, 18}, 13.5f, col(0xffc7cedd), .08f);
     juce::Path emblem;
     emblem.startNewSubPath(487, 10);

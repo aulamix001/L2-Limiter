@@ -15,13 +15,13 @@
 | Recuperação de release manual rápido/lento | Passou |
 | Teste estatístico de viés de dither de baixo nível | Passou |
 | 100.000 amostras com automação aleatória de todos os controles de DSP | Passou |
-| Restauração dos 25 presets, valores, nomes e índices de programa | Passou |
+| Restauração dos 33 presets, valores, nomes e índices de programa | Passou |
 | Áudio de cada preset: saída finita e dentro do ceiling | Passou |
 | Undo/Redo de presets e identidade do programa | Passou |
 | Buffers de 0, 1, 17, 64, 511 e 1024 amostras | Passou |
 | NaN/Inf de entrada: saída e medidores finitos | Passou |
 | AddressSanitizer + UndefinedBehaviorSanitizer no núcleo DSP | Passou, sem diagnósticos |
-| Renderização do painel JUCE, textura e controles | Inspecionada |
+| Renderização do painel JUCE, textura e controles; faders em 0.0 e −30.0 | Inspecionada, displays completos nos dois extremos |
 | pluginval 1.0.4, nível 5, VST3 Linux carregado por host externo | Passou; testes de janela omitidos por execução sem desktop |
 
 Comandos: `ctest --test-dir build --output-on-failure`; para os sanitizadores, `g++ -std=c++20 -O1 -g -Wall -Wextra -Werror -pedantic -fsanitize=address,undefined -fno-omit-frame-pointer -ISource Tests/DspTests.cpp -o dsp-sanitized && ./dsp-sanitized`. Os resultados não certificam todos os hosts ou dispositivos.

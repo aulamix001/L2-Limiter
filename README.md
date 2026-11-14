@@ -1,4 +1,4 @@
-# L2 Limiter — painel de hardware e 25 presets
+# L2 Limiter — painel de hardware e 33 presets
 
 Plugin C++20/JUCE 7.0.9 com alvo VST3 e aplicativo Standalone. AU também é habilitado no macOS. Projeto independente da Aulamix; não contém código ou algoritmos proprietários da Waves.
 
@@ -44,7 +44,7 @@ ctest --test-dir build-dsp --output-on-failure
 - Release manual ou adaptativo baseado em pico/RMS, com suavização de threshold e ceiling.
 - Quantização selecionável 24/22/20/18/16 bits, dither None/Type1/Type2 e shaping None/Moderate/Normal/Ultra.
 - Painel azul texturizado com disposição de controles baseada na referência, sombras projetadas e faders em relevo, displays editáveis, ARC, seletores, medidores L/R de pico e RMS, peak hold de 3 segundos e reset por clique no painel, indicador de clip e A/B. O botão Link acompanha arrastes dos sliders Threshold/Ceiling.
-- Estado dos parâmetros via APVTS, automação pelo host, presets XML `.l2p`, Undo/Redo e 25 presets de fábrica disponíveis também como programas do host. Shift-clique em Undo refaz a última ação; Ctrl/Cmd+Z e Ctrl/Cmd+Y também funcionam.
+- Estado dos parâmetros via APVTS, automação pelo host, presets XML `.l2p`, Undo/Redo e 33 presets de fábrica disponíveis também como programas do host. Shift-clique em Undo refaz a última ação; Ctrl/Cmd+Z e Ctrl/Cmd+Y também funcionam.
 - Testes do núcleo DSP e de integração do processador JUCE, incluindo restauração de estado.
 
 ## Limites desta versão
@@ -59,7 +59,7 @@ A compilação Linux não produz um VST3 Windows. Os testes de compilação e pr
 
 ## Presets de fábrica
 
-As 25 opções incluem Default; Female Vocal (Natural, Pop Forward, Soft Ballad); Male Vocal (Natural, Deep & Warm, Pop Forward); Backing Vocals; Bass (Electric Round, Pick Attack, Synth & Sub); Acoustic Gentle; Acoustic Guitar (Fingerstyle, Strumming); Nylon Guitar; Piano (Natural, Pop Presence); Electric Piano; Electric Guitar Clean; Drums; Strings; Pads; Podcast; Mix Bus; CD Master 16 Bit.
+As 33 opções incluem Default; Female Vocal (Natural, Pop Forward, Soft Ballad); Male Vocal (Natural, Deep & Warm, Pop Forward); Backing Vocals; Bass (Electric Round, Pick Attack, Synth & Sub); Acoustic Gentle; Acoustic Guitar (Fingerstyle, Strumming); Nylon Guitar; Piano (Natural, Pop Presence); Electric Piano; Electric Guitar Clean; Drums; Strings; Pads; Podcast; Mix Bus; CD Master 16 Bit.
 
 São ajustes originais para iniciar o trabalho, sem EQ ou modelagem de voz/instrumento. Ajuste Threshold ouvindo a fonte e observando a redução de ganho. Os presets de instrumentos mantêm saída de 24 bits, sem dither nem shaping; o preset CD Master seleciona 16 bits, Type1 e Normal. Um asterisco no seletor indica alterações em um preset de fábrica.
 
@@ -67,4 +67,8 @@ São ajustes originais para iniciar o trabalho, sem EQ ou modelagem de voz/instr
 
 A quantização agora funciona também com dither desligado. O ceiling é alinhado ao último nível de quantização representável abaixo do teto, evitando ultrapassagens após dither/shaping. A detecção usa os dois canais com ganho vinculado, e o ataque considera quando cada pico sairá do lookahead, evitando uma queda instantânea na chegada do pico. Threshold/Ceiling têm rampas de 10 ms e Release de 5 ms; uma redução de Ceiling tem proteção imediata. A medição de pico usa decaimento em função do tempo, e a interface decai mesmo quando o host para de enviar áudio. NaN/Inf de entrada são substituídos por silêncio antes do processamento e da medição.
 
-Os testes exercitam 480 combinações (44,1/48/96/192 kHz × ARC ligado/desligado × 5 profundidades × 3 dithers × 4 shapings), grade de quantização, ceiling, latência, passagem em ganho unitário, estéreo, ataque de transientes, recuperação do release, viés estatístico do dither, automação aleatória, restauração dos 25 presets, Undo/Redo e buffers de diversos tamanhos. O núcleo também foi executado com AddressSanitizer e UndefinedBehaviorSanitizer. O VST3 Linux passou no pluginval 1.0.4 nível 5 sem testes de janela; o workflow executa esse validador no VST3 Windows com os testes de interface habilitados. Consulte `VALIDATION.md` para o escopo e limitações.
+Os testes exercitam 480 combinações (44,1/48/96/192 kHz × ARC ligado/desligado × 5 profundidades × 3 dithers × 4 shapings), grade de quantização, ceiling, latência, passagem em ganho unitário, estéreo, ataque de transientes, recuperação do release, viés estatístico do dither, automação aleatória, restauração dos 33 presets, Undo/Redo e buffers de diversos tamanhos. O núcleo também foi executado com AddressSanitizer e UndefinedBehaviorSanitizer. O VST3 Linux passou no pluginval 1.0.4 nível 5 sem testes de janela; o workflow executa esse validador no VST3 Windows com os testes de interface habilitados. Consulte `VALIDATION.md` para o escopo e limitações.
+
+## SKY e Master Bus
+
+O painel usa a marca SKY. O banco agora inclui oito ajustes de Master Bus: Transparent, Streaming, Pop Punch, Rock Glue, Electronic, Acoustic, Jazz & Classical e Gentle Safety. São pontos de partida de limitação, sem normalização automática de LUFS ou garantia de true peak. Todos mantêm saída de 24 bits, dither e shaping desligados; ajuste o Threshold para o nível real da mixagem. Os 25 programas anteriores preservam seus índices para compatibilidade com sessões existentes.
