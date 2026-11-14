@@ -5,14 +5,14 @@
 #include <cstdint>
 #include <vector>
 
-// Original DSP implementation. Not Waves' proprietary ARC or IDR algorithm.
+// Original sample-peak limiter. ARC and shaping are not Waves' proprietary algorithms.
 class Limiter
 {
   public:
     void prepare(double sr)
     {
-        rate = sr;
-        delay = std::max(1, int(std::round(sr * 0.0015)));
+        rate = std::max(8000., sr);
+        delay = std::max(1, int(std::round(rate * .0015)));
         ring.assign(size_t(delay + 1), {});
         reset();
     }
@@ -23,16 +23,23 @@ class Limiter
         position = 0;
         gain = 1;
         energy = 0;
-        error = {};
+        adaptiveRelease = 100;
+        errors = {};
         rng = 0x19642024u;
-        threshold = targetThreshold;
-        ceiling = targetCeiling;
+        threshold.reset();
+        ceiling.reset();
+        release.reset();
     }
     void set(double th, double ce, double ms, bool automatic, int bits, int dither, int shape)
     {
-        targetThreshold = db(th);
-        targetCeiling = db(ce);
-        release = ms;
+        threshold.set(db(std::clamp(th, -30., 0.)), int(rate * .01));
+        ceiling.set(db(std::clamp(ce, -30., 0.)), int(rate * .01));
+        release.set(std::clamp(ms, .01, 1000.), int(rate * .005));
+        bits = std::clamp(bits, 16, 24);
+        dither = std::clamp(dither, 0, 2);
+        shape = std::clamp(shape, 0, 3);
+        if (bitDepth != bits || ditherType != dither || shaping != shape)
+            errors = {};
         arc = automatic;
         bitDepth = bits;
         ditherType = dither;
@@ -40,48 +47,62 @@ class Limiter
     }
     std::array<double, 2> process(double left, double right)
     {
-        // Linear parameter ramps lasting 10 ms; bounded step avoids parameter zippering.
-        auto smooth = [this](double &v, double target)
-        { v += std::clamp(target - v, -1.0 / (rate * .01), 1.0 / (rate * .01)); };
-        smooth(threshold, targetThreshold);
-        smooth(ceiling, targetCeiling);
-        const double makeup = ceiling / std::max(threshold, 1.e-12);
-        std::array<double, 2> in{std::isfinite(left) ? left * makeup : 0.,
-                                 std::isfinite(right) ? right * makeup : 0.};
-        ring[position] = in;
-        double peak = 0;
-        for (const auto &f : ring)
-            peak = std::max({peak, std::abs(f[0]), std::abs(f[1])});
-        energy += (std::max(in[0] * in[0], in[1] * in[1]) - energy) * (1 - std::exp(-1 / (rate * .03)));
-        double ms = release;
+        if (ring.empty())
+            return {};
+        const double currentCeiling = ceiling.next();
+        const double makeup = currentCeiling / std::max(threshold.next(), 1.e-12);
+        auto &frame = ring[position];
+        frame.audio = {std::isfinite(left) ? left * makeup : 0., std::isfinite(right) ? right * makeup : 0.};
+        const double inputPeak = std::max(std::abs(frame.audio[0]), std::abs(frame.audio[1]));
+        frame.inversePeak = inputPeak > 1.e-30 ? 1. / inputPeak : 1.e30;
+        energy += (inputPeak * inputPeak - energy) * (1 - std::exp(-1 / (rate * .03)));
+        position = (position + 1) % ring.size();
+        auto out = ring[position].audio;
+
+        // Each future peak imposes a linear attack ending at its playback deadline.
+        // This avoids stepping gain when a transient first enters the lookahead buffer.
+        double wanted = 1.;
+        double windowPeak = inputPeak;
+        for (size_t distance = 0, index = position; distance < ring.size(); ++distance)
+        {
+            const auto &upcoming = ring[index];
+            const double allowed = std::min(1., currentCeiling * upcoming.inversePeak);
+            wanted = std::min(wanted, allowed + (1. - allowed) * double(distance) / double(delay));
+            windowPeak = std::max(windowPeak, 1. / std::max(upcoming.inversePeak, 1.e-30));
+            index = (index + 1) % ring.size();
+        }
+        double ms = release.next();
         if (arc)
         {
-            const double crest = peak / std::max(std::sqrt(energy), 1.e-9);
-            ms = std::clamp(600. / std::max(crest, 1.), 20., 600.);
+            const double crest = windowPeak / std::max(std::sqrt(energy), 1.e-12);
+            const double transient = std::clamp((crest - 1.4) / 4.6, 0., 1.);
+            const double programRelease = 600. - transient * 580.;
+            adaptiveRelease += (programRelease - adaptiveRelease) * (1 - std::exp(-1 / (rate * .02)));
+            ms = adaptiveRelease;
         }
-        const double wanted = peak > ceiling ? ceiling / peak : 1.;
-        gain = wanted < gain ? wanted
-                             : wanted + (gain - wanted) * std::exp(-1 / (rate * std::max(ms, .01) * .001));
-        position = (position + 1) % ring.size();
-        auto out = ring[position];
+        gain = wanted < gain ? wanted : wanted + (gain - wanted) * std::exp(-1 / (rate * ms * .001));
+        const double limit = std::min(currentCeiling, ceiling.target);
+        const double step = std::ldexp(1., 1 - bitDepth);
+        const double quantizedLimit = std::floor(limit / step) * step;
         for (size_t ch = 0; ch < 2; ++ch)
         {
-            double value = std::clamp(out[ch] * gain, -ceiling, ceiling);
-            if (ditherType != 0)
-            {
-                const double step = std::ldexp(1., 1 - bitDepth);
-                const double feedback = shaping == 0 ? 0. : shaping == 1 ? .25 : shaping == 2 ? .5 : .75;
-                value += error[ch] * feedback;
-                const double noise = ditherType == 1 ? (random() - random()) * step : (random() - .5) * step;
-                const double quantized = std::round((value + noise) / step) * step;
-                error[ch] = std::clamp(value - quantized, -step, step);
-                value = quantized;
-            }
-            else
-                error[ch] = 0;
-            // Safety ceiling also after quantisation; sample-peak guarantee, not true peak.
-            const double safetyCeiling = std::min(ceiling, targetCeiling);
-            out[ch] = std::clamp(value, -safetyCeiling, safetyCeiling);
+            const double dry = std::clamp(out[ch] * gain, -limit, limit);
+            const auto &e = errors[ch];
+            // Own 1st/2nd/3rd-order high-pass error feedback, not the original IDR curves.
+            const double feedback = shaping == 0   ? 0.
+                                    : shaping == 1 ? e[0]
+                                    : shaping == 2 ? 2 * e[0] - e[1]
+                                                   : 3 * e[0] - 3 * e[1] + e[2];
+            const double value = dry + feedback;
+            const double noise = ditherType == 0   ? 0.
+                                 : ditherType == 1 ? (random() - random()) * step
+                                                   : (random() - .5) * step;
+            const double quantized = std::round((value + noise) / step) * step;
+            const double result = std::clamp(quantized, -quantizedLimit, quantizedLimit);
+            errors[ch][2] = e[1];
+            errors[ch][1] = e[0];
+            errors[ch][0] = result != quantized ? 0. : std::clamp(value - quantized, -1.5 * step, 1.5 * step);
+            out[ch] = result;
         }
         return out;
     }
@@ -90,6 +111,38 @@ class Limiter
     static double db(double v) { return std::pow(10., v / 20.); }
 
   private:
+    struct Ramp
+    {
+        double current = 1, target = 1, increment = 0;
+        int remaining = 0;
+        void set(double next, int samples)
+        {
+            if (next == target)
+                return;
+            target = next;
+            remaining = std::max(1, samples);
+            increment = (target - current) / remaining;
+        }
+        double next()
+        {
+            if (remaining > 0 && --remaining > 0)
+                current += increment;
+            else
+                current = target;
+            return current;
+        }
+        void reset()
+        {
+            current = target;
+            remaining = 0;
+            increment = 0;
+        }
+    };
+    struct Frame
+    {
+        std::array<double, 2> audio{};
+        double inversePeak = 1.e30;
+    };
     double random()
     {
         rng ^= rng << 13;
@@ -97,12 +150,12 @@ class Limiter
         rng ^= rng << 5;
         return double(rng) / 4294967296.;
     }
-    double rate = 48000, threshold = 1, targetThreshold = 1, ceiling = 1, targetCeiling = 1, release = 100,
-           energy = 0, gain = 1;
+    double rate = 48000, energy = 0, gain = 1, adaptiveRelease = 100;
+    Ramp threshold, ceiling, release{100, 100, 0, 0};
     int delay = 72, bitDepth = 24, ditherType = 0, shaping = 0;
     bool arc = true;
     size_t position = 0;
     uint32_t rng = 0x19642024u;
-    std::array<double, 2> error{};
-    std::vector<std::array<double, 2>> ring;
+    std::array<std::array<double, 3>, 2> errors{};
+    std::vector<Frame> ring;
 };
