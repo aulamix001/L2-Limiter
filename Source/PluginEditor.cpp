@@ -4,11 +4,11 @@ namespace
 juce::Colour col(juce::uint32 x) { return juce::Colour(x); }
 void well(juce::Graphics &g, juce::Rectangle<float> r, bool accent = true)
 {
-    g.setColour(col(0xff090b13));
+    g.setColour(col(0xff17130f));
     g.fillRoundedRectangle(r, 1.5f);
-    g.setColour(col(0xff02030a));
+    g.setColour(col(0xff080706));
     g.drawRoundedRectangle(r.expanded(.7f), 1.8f, 1.f);
-    g.setColour(col(accent ? 0xff5293bd : 0xff48516d));
+    g.setColour(col(accent ? 0xff897b68 : 0xff857865));
     g.drawRoundedRectangle(r, 1.5f, .6f);
     g.setColour(juce::Colours::white.withAlpha(.13f));
     g.drawLine(r.getX() + 1, r.getBottom() + .8f, r.getRight() - 1, r.getBottom() + .8f, .6f);
@@ -58,12 +58,12 @@ void HardwareFader::mouseDoubleClick(const juce::MouseEvent &)
 }
 ScalerL2LookAndFeel::ScalerL2LookAndFeel()
 {
-    setColour(juce::ResizableWindow::backgroundColourId, col(0xff181b30));
+    setColour(juce::ResizableWindow::backgroundColourId, col(0xffb3a38d));
     setColour(juce::TextButton::textColourOffId, col(0xffe8ecf0));
     setColour(juce::ComboBox::textColourId, col(0xffe8ecf0));
-    setColour(juce::PopupMenu::backgroundColourId, col(0xff151a2c));
+    setColour(juce::PopupMenu::backgroundColourId, col(0xff29241e));
     setColour(juce::PopupMenu::textColourId, col(0xffe8ecf0));
-    setColour(juce::PopupMenu::highlightedBackgroundColourId, col(0xff2d577c));
+    setColour(juce::PopupMenu::highlightedBackgroundColourId, col(0xff746450));
     setColour(juce::PopupMenu::highlightedTextColourId, juce::Colours::white);
     setColour(juce::Label::textColourId, col(0xffe8ecf0));
 }
@@ -91,10 +91,10 @@ void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int
         juce::Rectangle<float> r(cx - 10.5f, pos - 12, 21, 25);
         juce::DropShadow(juce::Colours::black.withAlpha(.9f), 5, {3, 3})
             .drawForRectangle(g, r.toNearestInt());
-        g.setGradientFill(juce::ColourGradient(col(0xff556179), r.getX(), r.getY(), col(0xff131929),
+        g.setGradientFill(juce::ColourGradient(col(0xffe0d1b8), r.getX(), r.getY(), col(0xff554a3e),
                                                r.getRight(), r.getBottom(), false));
         g.fillRoundedRectangle(r, 1.4f);
-        g.setColour(col(0xff68aad2));
+        g.setColour(col(0xff51483d));
         g.drawRoundedRectangle(r, 1.4f, .6f);
         g.setColour(juce::Colours::white.withAlpha(.38f));
         g.drawLine(r.getX() + 1, r.getY() + 1, r.getRight() - 1, r.getY() + 1, .7f);
@@ -105,7 +105,7 @@ void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int
             g.setColour(juce::Colours::white.withAlpha(.1f));
             g.drawLine(r.getX() + 2, r.getY() + y + 1, r.getRight() - 2, r.getY() + y + 1, .5f);
         }
-        g.setColour(col(0xffafdafa));
+        g.setColour(col(0xff201b17));
         g.drawLine(r.getX() + 2, pos, r.getRight() - 2, pos, .8f);
     }
     else
@@ -113,7 +113,7 @@ void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int
         for (int i = 0; i <= 10; ++i)
         {
             float y = 12 + (h - 24) * i / 10.f;
-            g.setColour(col(0xff737d98));
+            g.setColour(col(0xff5d5044));
             g.drawLine(1, y, 8, y, .6f);
             g.drawLine(w - 8, y, w - 1, y, .6f);
             g.setColour(juce::Colours::black.withAlpha(.5f));
@@ -124,13 +124,13 @@ void ScalerL2LookAndFeel::drawLinearSlider(juce::Graphics &g, int, int, int, int
         juce::DropShadow(juce::Colours::black.withAlpha(.95f), 5, {2, 3})
             .drawForRectangle(g, r.expanded(2).toNearestInt());
         g.setGradientFill(
-            juce::ColourGradient(col(0xff6485a1), 0, pos - 9, col(0xff0b1524), 0, pos + 9, false));
+            juce::ColourGradient(col(0xffd1bfa4), 0, pos - 9, col(0xff564a3c), 0, pos + 9, false));
         g.fillRoundedRectangle(r.expanded(2, 1.5f), 1);
         well(g, r);
         juce::Path arrows;
         arrows.addTriangle(1, pos, 6, pos - 4, 6, pos + 4);
         arrows.addTriangle(w - 1, pos, w - 6, pos - 4, w - 6, pos + 4);
-        g.setColour(col(0xff6ec6ff));
+        g.setColour(col(0xffd7c59f));
         g.fillPath(arrows);
         text(g, juce::String(s.getValue(), 1), r, 10);
     }
@@ -142,13 +142,13 @@ void ScalerL2LookAndFeel::drawButtonBackground(juce::Graphics &g, juce::Button &
     const bool active = b.getToggleState();
     juce::DropShadow(juce::Colours::black.withAlpha(.9f), 2, {1, 2}).drawForRectangle(g, r.toNearestInt());
     const bool isArc = b.getButtonText() == "ARC";
-    auto top = active ? (isArc ? col(0xff95ffdc) : col(0xff4c99ce)) : col(over ? 0xff52617c : 0xff3c4963);
-    auto bottom = active ? (isArc ? col(0xff21bfae) : col(0xff254865)) : col(0xff0b1220);
+    auto top = active ? (isArc ? col(0xffb9bec0) : col(0xffad9b7e)) : col(over ? 0xff66594a : 0xff4b4238);
+    auto bottom = active ? (isArc ? col(0xff596168) : col(0xff504639)) : col(0xff0e0c0a);
     if (down)
         std::swap(top, bottom);
     g.setGradientFill(juce::ColourGradient(top, 0, 0, bottom, 0, r.getHeight(), false));
     g.fillRoundedRectangle(r, 1.5f);
-    g.setColour(col(active ? 0xff85eddc : 0xff6f97bd));
+    g.setColour(col(active ? 0xffded1b9 : 0xffa99b87));
     g.drawRoundedRectangle(r, 1.5f, .65f);
     g.setColour(juce::Colours::white.withAlpha(.3f));
     g.drawLine(1.5f, 1.5f, r.getRight() - 1, 1.5f, .5f);
@@ -156,15 +156,15 @@ void ScalerL2LookAndFeel::drawButtonBackground(juce::Graphics &g, juce::Button &
 void ScalerL2LookAndFeel::drawButtonText(juce::Graphics &g, juce::TextButton &b, bool, bool)
 {
     text(g, b.getButtonText(), b.getLocalBounds().toFloat(), b.getButtonText() == "ARC" ? 11.f : 9.2f,
-         b.getToggleState() && b.getButtonText() == "ARC" ? col(0xff07262a) : col(0xffe3e8f5));
+         b.getToggleState() && b.getButtonText() == "ARC" ? col(0xff111111) : col(0xffe3e8f5));
 }
 void ScalerL2LookAndFeel::drawComboBox(juce::Graphics &g, int w, int h, bool, int, int, int, int,
                                        juce::ComboBox &box)
 {
     auto r = juce::Rectangle<float>(.5f, .5f, float(w) - 1, float(h) - 1);
-    g.setGradientFill(juce::ColourGradient(col(0xff29374c), 0, 0, col(0xff070d17), 0, float(h), false));
+    g.setGradientFill(juce::ColourGradient(col(0xff51483d), 0, 0, col(0xff090807), 0, float(h), false));
     g.fillRoundedRectangle(r, 1.5f);
-    g.setColour(col(0xff5f99c2));
+    g.setColour(col(0xffb4a38a));
     g.drawRoundedRectangle(r, 1.5f, .7f);
     g.setColour(juce::Colours::white.withAlpha(.2f));
     g.drawLine(1.5f, 1.5f, float(w) - 2, 1.5f, .5f);
@@ -172,7 +172,7 @@ void ScalerL2LookAndFeel::drawComboBox(juce::Graphics &g, int w, int h, bool, in
     {
         juce::Path arrow;
         arrow.addTriangle(float(w) - 9, 6, float(w) - 4, 6, float(w) - 6.5f, 9);
-        g.setColour(col(0xff8aa2be));
+        g.setColour(col(0xffc6b9a5));
         g.fillPath(arrow);
     }
 }
@@ -303,7 +303,7 @@ L2Editor::L2Editor(L2Processor &p) : AudioProcessorEditor(p), processor(p)
     setWantsKeyboardFocus(true);
     setResizable(true, true);
     getConstrainer()->setFixedAspectRatio(528. / 294.);
-    setResizeLimits(528, 294, 1584, 882);
+    setResizeLimits(528, 294, 7680, 4276);
     setSize(1056, 588);
     timerCallback();
     startTimerHz(60);
@@ -340,15 +340,15 @@ void L2Editor::createTexture()
     juce::Image::BitmapData data(texture, juce::Image::BitmapData::writeOnly);
     for (int y = 0; y < texture.getHeight(); ++y)
     {
-        float brush = random.nextFloat() * 1.6f;
+        float brush = (random.nextFloat() - .5f) * 7.f;
         for (int x = 0; x < texture.getWidth(); ++x)
         {
             float n = (random.nextFloat() - .5f) * 4.f + brush;
-            float light = 3.5f * std::exp(-std::pow((x - 390.f) / 420.f, 2));
+            float light = 8.f * std::exp(-std::pow((x - 390.f) / 420.f, 2));
             data.setPixelColour(x, y,
-                                juce::Colour(juce::uint8(juce::jlimit(0, 255, int(24 + n + light))),
-                                             juce::uint8(juce::jlimit(0, 255, int(28 + n + light))),
-                                             juce::uint8(juce::jlimit(0, 255, int(48 + n + light)))));
+                                juce::Colour(juce::uint8(juce::jlimit(0, 255, int(174 + n + light))),
+                                             juce::uint8(juce::jlimit(0, 255, int(159 + n + light))),
+                                             juce::uint8(juce::jlimit(0, 255, int(138 + n + light)))));
         }
     }
 }
@@ -359,18 +359,20 @@ void L2Editor::paint(juce::Graphics &original)
     auto &g = original;
     g.drawImage(texture, juce::Rectangle<float>(0, 0, 528, 294));
     g.setGradientFill(juce::ColourGradient(juce::Colours::transparentBlack, 264, 70,
-                                           juce::Colours::black.withAlpha(.35f), 264, 294, false));
+                                           juce::Colours::black.withAlpha(.08f), 264, 294, false));
     g.fillAll();
-    g.setColour(col(0xff050711));
+    g.setColour(col(0xff151311));
+    g.fillRect(1.f, 1.f, 526.f, 27.f);
+    g.setColour(col(0xff554b3e));
     g.drawRoundedRectangle({.8f, .8f, 526.4f, 292.4f}, 4, 2);
-    g.setColour(col(0xff61728b));
+    g.setColour(col(0xffe1d3bc));
     g.drawLine(5, 2, 523, 2, .8f);
     g.drawLine(2, 5, 2, 288, .6f);
-    g.setColour(col(0xff3b425b));
+    g.setColour(col(0xff7a6b59));
     g.drawLine(6, 51, 522, 51, .6f);
     well(g, {10, 8, 58, 18});
     text(g, "SKY", {12, 8, 54, 18}, 11, col(0xffe8ecf0), .04f);
-    text(g, "L2 ULTRAMAXIMIZER", {251, 29, 209, 18}, 13.5f, col(0xffc7cedd), .08f);
+    text(g, "L2 ULTRAMAXIMIZER", {159, 29, 209, 18}, 13.5f, col(0xff231d18), .08f);
     juce::Path emblem;
     emblem.startNewSubPath(487, 10);
     emblem.lineTo(492, 39);
@@ -382,7 +384,7 @@ void L2Editor::paint(juce::Graphics &original)
     g.setColour(col(0xff5e637f));
     g.strokePath(emblem, juce::PathStrokeType(1.6f));
     auto label = [&](juce::String s, float x, float y, float w, float h, float size = 10.f)
-    { text(g, s, {x, y, w, h}, size, col(0xffd8deed), .13f); };
+    { text(g, s, {x, y, w, h}, size, col(0xff1e1915), .13f); };
     label("THRESHOLD", 25, 54, 84, 14);
     label("OUT CEILING", 155, 54, 85, 14);
     label("RELEASE", 268, 54, 67, 14);
@@ -401,14 +403,14 @@ void L2Editor::paint(juce::Graphics &original)
                                 : inside.removeFromBottom(inside.getHeight() * fraction);
         if (attenuation)
         {
-            g.setGradientFill(juce::ColourGradient(col(0xff68d5ff), fill.getX(), fill.getY(), col(0xff2592d3),
+            g.setGradientFill(juce::ColourGradient(col(0xffffa300), fill.getX(), fill.getY(), col(0xffff6c00),
                                                    fill.getRight(), fill.getY(), false));
         }
         else
         {
-            juce::ColourGradient gradient(col(0xfff03c52), x, 79, col(0xff53c879), x, 230, false);
-            gradient.addColour(.35, col(0xffffb237));
-            gradient.addColour(.68, col(0xffe7e14f));
+            juce::ColourGradient gradient(col(0xffff2100), x, 79, col(0xffffd500), x, 230, false);
+            gradient.addColour(.35, col(0xffff6f00));
+            gradient.addColour(.68, col(0xffffb900));
             g.setGradientFill(gradient);
         }
         g.fillRect(fill);
@@ -436,24 +438,24 @@ void L2Editor::paint(juce::Graphics &original)
         float x = k == 0 ? 23 : k == 1 ? 89 : k == 2 ? 156 : 223;
         well(g, {x, 240, 32, 15}, false);
         text(g, juce::String(juce::Decibels::gainToDecibels(holds[size_t(k)], -90.f), 1), {x, 240, 32, 15},
-             9.5f, col(0xffd6dceb));
+             9.5f, col(0xffffb000));
     }
     for (int i = 0; i <= 10; ++i)
     {
         float y = 78 + 15.1f * i;
-        text(g, juce::String(i * 3), {358, y - 6, 20, 12}, 9, col(0xffb1b8cc));
-        g.setColour(col(0xff8792a8));
+        text(g, juce::String(i * 3), {358, y - 6, 20, 12}, 9, col(0xff28221c));
+        g.setColour(col(0xff594b3d));
         g.drawLine(378, y, 382, y, .5f);
     }
     well(g, {380, 240, 24, 15}, false);
-    text(g, "-" + juce::String(reduction, 1), {379, 240, 27, 15}, 9, col(0xff65cbf6));
+    text(g, "-" + juce::String(reduction, 1), {379, 240, 27, 15}, 9, col(0xffffa900));
     const std::array<const char *, 6> ticks{"1000", "100", "10.0", "1.0", "0.1", "0.01"};
     for (int i = 0; i < 6; ++i)
     {
         float y = 107 + i * 22.2f;
-        g.setColour(col(0xff8b95ab));
+        g.setColour(col(0xff574a3d));
         g.drawLine(299, y, 305, y, .6f);
-        text(g, ticks[size_t(i)], {305, y - 6, 25, 12}, 9, col(0xffc0c6d7));
+        text(g, ticks[size_t(i)], {305, y - 6, 25, 12}, 9, col(0xff28221c));
     }
     well(g, {274, 77, 45, 15});
     juce::Rectangle<float> idr(437, 71, 69, 27);
@@ -462,7 +464,7 @@ void L2Editor::paint(juce::Graphics &original)
     g.fillRoundedRectangle(idr, 14);
     g.setColour(col(0xff656780));
     g.drawRoundedRectangle(idr, 14, .8f);
-    text(g, "IDR", idr, 21, col(0xff9972f9), .06f);
+    text(g, "IDR", idr, 21, col(0xfff02d00), .06f);
     label("QUANTIZE", 435, 104, 73, 15, 9.3f);
     label("DITHER", 436, 155, 72, 15, 9.3f);
     label("SHAPING", 436, 206, 72, 15, 9.3f);
